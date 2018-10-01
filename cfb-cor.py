@@ -81,4 +81,4 @@ for i in range(1, 26):
     print(str(i) + " - " + sorted_wins[i-1][0] + " (" +
           str(actual_wins[sorted_wins[i-1][0]]) + "-" +
           str(actual_losses[sorted_wins[i-1][0]]) + ") (" +
-          str(sorted_wins[i-1][1]) + ")")
+          str(sorted_wins[i-1][1]) + ")  ")
