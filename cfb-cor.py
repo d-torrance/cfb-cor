@@ -1,9 +1,19 @@
 #!/usr/bin/python3
 
+import argparse
 from bs4 import BeautifulSoup
 import itertools
 import networkx as nx
 import requests
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--single-team", "-s", help="dot file for single team")
+args = parser.parse_args()
+
+if args.single_team:
+    single_team = args.single_team
+else:
+    single_team = ""
 
 # get current year + week
 doc = requests.get("https://www.ncaa.com/scoreboard/football/fbs")
@@ -82,3 +92,9 @@ for i in range(1, 26):
           str(actual_wins[sorted_wins[i-1][0]]) + "-" +
           str(actual_losses[sorted_wins[i-1][0]]) + ") (" +
           str(sorted_wins[i-1][1]) + ")  ")
+
+if single_team != "":
+    single_team_graph_teams = list(nx.descendants(G, single_team)) + \
+                              list(nx.ancestors(G,single_team)) + [single_team]
+    single_team_graph = G.subgraph(single_team_graph_teams)
+    nx.nx_agraph.write_dot(single_team_graph, "single_team.dot")
