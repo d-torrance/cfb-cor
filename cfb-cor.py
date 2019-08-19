@@ -1,13 +1,15 @@
 #!/usr/bin/python3
 
 import argparse
-from bs4 import BeautifulSoup
+import datetime
+import CFBScrapy as cfb
 import itertools
 import networkx as nx
-import requests
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--single-team", "-s", help="dot file for single team")
+parser.add_argument("--year", "-y", help = "pick specific year")
+parser.add_argument("--num-teams", "-n", help = "number of teams (default: 25)")
 args = parser.parse_args()
 
 if args.single_team:
@@ -15,49 +17,80 @@ if args.single_team:
 else:
     single_team = ""
 
-# get current year + week
-doc = requests.get("https://www.ncaa.com/scoreboard/football/fbs")
-soup = BeautifulSoup(doc.content, "lxml")
-div = soup.find("div", class_="selected")
-year = div.find("a")["href"].split("/")[4]
-week = div.get_text(strip=True)
+if args.year:
+    year = args.year
+else:
+    today = datetime.datetime.now()
+    if today.month < 8: # go with last season if before august
+        year = today.year - 1
+    else:
+        year = today.year
+
+if args.num_teams:
+    num_teams = int(args.num_teams) + 1
+else:
+    num_teams = 26
 
 G = nx.DiGraph()
 
 actual_wins = {}
 actual_losses = {}
 
-for i in range(1, int(week) + 1):
-    doc = requests.get("https://www.ncaa.com/scoreboard/football/fbs/" + year
-                       + "/" + str(i).zfill(2) + "/all-conf")
-    soup = BeautifulSoup(doc.content, "lxml")
-    games = soup.find_all("ul", class_="gamePod-game-teams")
-    for game in games:
-        teams = game.find_all("li")
-        team1 = teams[0].find("span",
-                              class_="gamePod-game-team-name").get_text()
-        team2 = teams[1].find("span",
-                              class_="gamePod-game-team-name").get_text()
-        if teams[0]["class"][0] == "winner":
-            if team1 in actual_wins:
-                actual_wins[team1] += 1
-            else:
-                actual_wins[team1]= 1
-            if team2 in actual_losses:
-                actual_losses[team2] += 1
-            else:
-                actual_losses[team2] = 1
-            G.add_edge(team1, team2)
-        elif teams[1]["class"][0] == "winner":
-            if team2 in actual_wins:
-                actual_wins[team2] += 1
-            else:
-                actual_wins[team2]= 1
-            if team1 in actual_losses:
-                actual_losses[team1] += 1
-            else:
-                actual_losses[team1] = 1
-            G.add_edge(team2, team1)
+
+games = cfb.get_game_info(year=year)
+
+for i, game in games.iterrows():
+    team1 = game['home_team']
+    team2 = game['away_team']
+    if game['home_points'] > game['away_points']:
+        if team1 in actual_wins:
+            actual_wins[team1] += 1
+        else:
+            actual_wins[team1]= 1
+        if team2 in actual_losses:
+            actual_losses[team2] += 1
+        else:
+            actual_losses[team2] = 1
+        G.add_edge(team1, team2)
+    elif game['home_points'] < game['away_points']:
+        if team2 in actual_wins:
+            actual_wins[team2] += 1
+        else:
+            actual_wins[team2]= 1
+        if team1 in actual_losses:
+            actual_losses[team1] += 1
+        else:
+            actual_losses[team1] = 1
+        G.add_edge(team2, team1)
+
+
+# now do it again for postseason games
+games = cfb.get_game_info(year=year, seasonType = 'postseason')
+
+for i, game in games.iterrows():
+    team1 = game['home_team']
+    team2 = game['away_team']
+    if game['home_points'] > game['away_points']:
+        if team1 in actual_wins:
+            actual_wins[team1] += 1
+        else:
+            actual_wins[team1]= 1
+        if team2 in actual_losses:
+            actual_losses[team2] += 1
+        else:
+            actual_losses[team2] = 1
+        G.add_edge(team1, team2)
+    elif game['home_points'] < game['away_points']:
+        if team2 in actual_wins:
+            actual_wins[team2] += 1
+        else:
+            actual_wins[team2]= 1
+        if team1 in actual_losses:
+            actual_losses[team1] += 1
+        else:
+            actual_losses[team1] = 1
+        G.add_edge(team2, team1)
+
 
 wins = {}
 
@@ -87,7 +120,7 @@ for teams in itertools.combinations(G, 2):
 
 sorted_wins = list(reversed(sorted(wins.items(), key=lambda kv: kv[1])))
 
-for i in range(1, 26):
+for i in range(1, num_teams):
     print(str(i) + " - " + sorted_wins[i-1][0] + " (" +
           str(actual_wins[sorted_wins[i-1][0]]) + "-" +
           str(actual_losses[sorted_wins[i-1][0]]) + ") (" +
