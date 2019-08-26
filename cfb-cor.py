@@ -37,65 +37,37 @@ G = nx.DiGraph()
 actual_wins = {}
 actual_losses = {}
 
+def find_games(season_type):
+    games = cfb.get_game_info(year=year, seasonType = season_type)
 
-games = cfb.get_game_info(year=year)
+    for i, game in games.iterrows():
+        if dateutil.parser.parse(game['start_date']).replace(tzinfo=None) > today:
+            continue
+        team1 = game['home_team']
+        team2 = game['away_team']
+        if game['home_points'] > game['away_points']:
+            if team1 in actual_wins:
+                actual_wins[team1] += 1
+            else:
+                actual_wins[team1]= 1
+                if team2 in actual_losses:
+                    actual_losses[team2] += 1
+                else:
+                    actual_losses[team2] = 1
+                    G.add_edge(team1, team2)
+        elif game['home_points'] < game['away_points']:
+            if team2 in actual_wins:
+                actual_wins[team2] += 1
+            else:
+                actual_wins[team2]= 1
+                if team1 in actual_losses:
+                    actual_losses[team1] += 1
+                else:
+                    actual_losses[team1] = 1
+                    G.add_edge(team2, team1)
 
-for i, game in games.iterrows():
-    if dateutil.parser.parse(game['start_date']).replace(tzinfo=None) > today:
-        continue
-    team1 = game['home_team']
-    team2 = game['away_team']
-    if game['home_points'] > game['away_points']:
-        if team1 in actual_wins:
-            actual_wins[team1] += 1
-        else:
-            actual_wins[team1]= 1
-        if team2 in actual_losses:
-            actual_losses[team2] += 1
-        else:
-            actual_losses[team2] = 1
-        G.add_edge(team1, team2)
-    elif game['home_points'] < game['away_points']:
-        if team2 in actual_wins:
-            actual_wins[team2] += 1
-        else:
-            actual_wins[team2]= 1
-        if team1 in actual_losses:
-            actual_losses[team1] += 1
-        else:
-            actual_losses[team1] = 1
-        G.add_edge(team2, team1)
-
-
-# now do it again for postseason games
-games = cfb.get_game_info(year=year, seasonType = 'postseason')
-
-for i, game in games.iterrows():
-    if dateutil.parser.parse(game['start_date']).replace(tzinfo=None) > today:
-        continue
-    team1 = game['home_team']
-    team2 = game['away_team']
-    if game['home_points'] > game['away_points']:
-        if team1 in actual_wins:
-            actual_wins[team1] += 1
-        else:
-            actual_wins[team1]= 1
-        if team2 in actual_losses:
-            actual_losses[team2] += 1
-        else:
-            actual_losses[team2] = 1
-        G.add_edge(team1, team2)
-    elif game['home_points'] < game['away_points']:
-        if team2 in actual_wins:
-            actual_wins[team2] += 1
-        else:
-            actual_wins[team2]= 1
-        if team1 in actual_losses:
-            actual_losses[team1] += 1
-        else:
-            actual_losses[team1] = 1
-        G.add_edge(team2, team1)
-
+find_games('regular')
+find_games('postseason')
 
 wins = {}
 
