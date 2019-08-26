@@ -101,7 +101,14 @@ if len(sorted_wins) + 1 < num_teams:
     num_teams = len(sorted_wins) + 1
 
 for i in range(1, num_teams):
-    print(str(i) + " - " + sorted_wins[i-1][0] + " (" +
+    if i > 1:
+        if sorted_wins[i-1][1] == sorted_wins[i-2][1]:
+            rank_num = "&nbsp;&nbsp;"
+        else:
+            rank_num = str(i)
+    else:
+        rank_num = '1'
+    print(rank_num + " - " + sorted_wins[i-1][0] + " (" +
           str(actual_wins[sorted_wins[i-1][0]]) + "-" +
           str(actual_losses[sorted_wins[i-1][0]]) + ") (" +
           str(sorted_wins[i-1][1]) + ")  ")
