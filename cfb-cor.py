@@ -125,6 +125,9 @@ for teams in itertools.combinations(G, 2):
 
 sorted_wins = list(reversed(sorted(wins.items(), key=lambda kv: kv[1])))
 
+if len(sorted_wins) + 1 < num_teams:
+    num_teams = len(sorted_wins) + 1
+
 for i in range(1, num_teams):
     print(str(i) + " - " + sorted_wins[i-1][0] + " (" +
           str(actual_wins[sorted_wins[i-1][0]]) + "-" +
