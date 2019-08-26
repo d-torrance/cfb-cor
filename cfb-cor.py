@@ -2,6 +2,7 @@
 
 import argparse
 import datetime
+import dateutil.parser
 import CFBScrapy as cfb
 import itertools
 import networkx as nx
@@ -17,10 +18,10 @@ if args.single_team:
 else:
     single_team = ""
 
+today = datetime.datetime.now()
 if args.year:
     year = args.year
 else:
-    today = datetime.datetime.now()
     if today.month < 8: # go with last season if before august
         year = today.year - 1
     else:
@@ -40,6 +41,8 @@ actual_losses = {}
 games = cfb.get_game_info(year=year)
 
 for i, game in games.iterrows():
+    if dateutil.parser.parse(game['start_date']).replace(tzinfo=None) > today:
+        continue
     team1 = game['home_team']
     team2 = game['away_team']
     if game['home_points'] > game['away_points']:
@@ -68,6 +71,8 @@ for i, game in games.iterrows():
 games = cfb.get_game_info(year=year, seasonType = 'postseason')
 
 for i, game in games.iterrows():
+    if dateutil.parser.parse(game['start_date']).replace(tzinfo=None) > today:
+        continue
     team1 = game['home_team']
     team2 = game['away_team']
     if game['home_points'] > game['away_points']:
