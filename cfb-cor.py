@@ -54,7 +54,7 @@ def find_games(season_type):
                 actual_losses[team2] += 1
             else:
                 actual_losses[team2] = 1
-                G.add_edge(team1, team2)
+            G.add_edge(team1, team2)
         elif game['home_points'] < game['away_points']:
             if team2 in actual_wins:
                 actual_wins[team2] += 1
@@ -64,7 +64,7 @@ def find_games(season_type):
                 actual_losses[team1] += 1
             else:
                 actual_losses[team1] = 1
-                G.add_edge(team2, team1)
+            G.add_edge(team2, team1)
 
 find_games('regular')
 find_games('postseason')
