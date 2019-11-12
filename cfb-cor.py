@@ -11,6 +11,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--single-team", "-s", help="dot file for single team")
 parser.add_argument("--year", "-y", help = "pick specific year")
 parser.add_argument("--num-teams", "-n", help = "number of teams (default: 25)")
+parser.add_argument("--reverse", "-r", help = "reverse order",
+                    action = "store_true")
 args = parser.parse_args()
 
 if args.single_team:
@@ -102,6 +104,9 @@ for teams in itertools.combinations(G, 2):
         pass
 
 sorted_wins = list(reversed(sorted(wins.items(), key=lambda kv: kv[1])))
+
+if args.reverse:
+    sorted_wins.reverse()
 
 if len(sorted_wins) + 1 < num_teams:
     num_teams = len(sorted_wins) + 1
