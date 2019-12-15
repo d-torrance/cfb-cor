@@ -13,6 +13,7 @@ parser.add_argument("--year", "-y", help = "pick specific year")
 parser.add_argument("--num-teams", "-n", help = "number of teams (default: 25)")
 parser.add_argument("--reverse", "-r", help = "reverse order",
                     action = "store_true")
+parser.add_argument("--breakdown", "-b", help="breakdown for single team")
 args = parser.parse_args()
 
 if args.single_team:
@@ -129,3 +130,36 @@ if single_team != "":
                               list(nx.ancestors(G,single_team)) + [single_team]
     single_team_graph = G.subgraph(single_team_graph_teams)
     nx.nx_agraph.write_dot(single_team_graph, "single_team.dot")
+
+if args.breakdown:
+    current_team = args.breakdown
+    win_path_list = []
+    loss_path_list = []
+
+    for team in G:
+        if team == current_team:
+            continue
+        try:
+            path = nx.shortest_path(G, source=current_team, target=team)
+            win_path_list.append(' → '.join(path))
+        except nx.NetworkXNoPath:
+            pass
+        try:
+            path = nx.shortest_path(G, source=team, target=current_team)
+            path = path[::-1]
+            loss_path_list.append(' ← '.join(path))
+        except nx.NetworkXNoPath:
+            pass
+
+    win_path_list.sort()
+    loss_path_list.sort()
+
+    cumulative_wins = 0
+    for path in win_path_list:
+        wins = 2 ** (1 - path.count('→'))
+        cumulative_wins += wins
+        print(path + ', (%.16g, %.16g)  ' % (wins, cumulative_wins))
+    for path in loss_path_list:
+        losses = -2 ** (1 - path.count('←'))
+        cumulative_wins += losses
+        print(path + ', (%.16g, %.16g)  ' % (losses, cumulative_wins))
