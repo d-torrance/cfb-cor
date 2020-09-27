@@ -92,15 +92,15 @@ for team in G:
 for teams in itertools.combinations(G, 2):
     try:
         n = nx.shortest_path_length(G, source=teams[0], target=teams[1])
-        wins[teams[0]] += 2**(1 - n)
-        wins[teams[1]] += -2**(1 - n)
+        wins[teams[0]] += 2**(1.0 - n)
+        wins[teams[1]] += -2**(1.0 - n)
     except nx.NetworkXNoPath:
         pass
 
     try:
         n = nx.shortest_path_length(G, source=teams[1], target=teams[0])
-        wins[teams[1]] += 2**(1 - n)
-        wins[teams[0]] += -2**(1 - n)
+        wins[teams[1]] += 2**(1.0 - n)
+        wins[teams[0]] += -2**(1.0 - n)
     except nx.NetworkXNoPath:
         pass
 
