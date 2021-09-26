@@ -1,11 +1,19 @@
 #!/usr/bin/python3
 
 import argparse
+import cfbd
 import datetime
 import dateutil.parser
-import CFBScrapy as cfb
 import itertools
 import networkx as nx
+import os
+import xdg
+
+api_key = open(f"{str(xdg.xdg_config_home())}/cfb-cor/api-key").read()
+configuration = cfbd.Configuration()
+configuration.api_key['Authorization'] = api_key
+configuration.api_key_prefix['Authorization'] = 'Bearer'
+api_instance = cfbd.GamesApi(cfbd.ApiClient(configuration))
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--single-team", "-s", help="dot file for single team")
@@ -41,18 +49,18 @@ actual_wins = {}
 actual_losses = {}
 
 def find_games(season_type):
-    games = cfb.get_game_info(year=year, seasonType = season_type)
+    games = api_instance.get_games(year=year, season_type = season_type)
 
-    for i, game in games.iterrows():
-        if game['home_conference'] == None or game['away_conference'] == None:
+    for game in games:
+        if game.home_conference == None or game.away_conference == None:
             skip_game = True
         else:
             skip_game = False
-        if dateutil.parser.parse(game['start_date']).replace(tzinfo=None) > today:
+        if dateutil.parser.parse(game.start_date).replace(tzinfo=None) > today:
             continue
-        team1 = game['home_team']
-        team2 = game['away_team']
-        if game['home_points'] > game['away_points']:
+        team1 = game.home_team
+        team2 = game.away_team
+        if game.home_points > game.away_points:
             if team1 in actual_wins:
                 actual_wins[team1] += 1
             else:
@@ -63,7 +71,7 @@ def find_games(season_type):
                 actual_losses[team2] = 1
             if not skip_game:
                 G.add_edge(team1, team2)
-        elif game['home_points'] < game['away_points']:
+        elif game.home_points < game.away_points:
             if team2 in actual_wins:
                 actual_wins[team2] += 1
             else:
