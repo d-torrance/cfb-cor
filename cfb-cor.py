@@ -6,7 +6,6 @@ import datetime
 import dateutil.parser
 import itertools
 import networkx as nx
-import os
 import xdg
 
 class NoScoreError(Exception):
