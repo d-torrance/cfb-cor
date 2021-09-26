@@ -9,6 +9,9 @@ import networkx as nx
 import os
 import xdg
 
+class NoScoreError(Exception):
+    pass
+
 api_key = open(f"{str(xdg.xdg_config_home())}/cfb-cor/api-key").read()
 configuration = cfbd.Configuration()
 configuration.api_key['Authorization'] = api_key
@@ -60,6 +63,9 @@ def find_games(season_type):
             continue
         team1 = game.home_team
         team2 = game.away_team
+        if not isinstance(game.home_points, int) or \
+           not isinstance(game.away_points, int):
+            raise NoScoreError(f"missing score for {team1} v. {team2}")
         if game.home_points > game.away_points:
             if team1 in actual_wins:
                 actual_wins[team1] += 1
