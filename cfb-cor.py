@@ -30,7 +30,7 @@ else:
 
 today = datetime.datetime.now()
 if args.year:
-    year = args.year
+    year = int(args.year)
 else:
     if today.month < 8: # go with last season if before august
         year = today.year - 1
