@@ -48,10 +48,11 @@ actual_wins = {}
 actual_losses = {}
 
 def find_games(season_type):
-    games = api_instance.get_games(year=year, season_type = season_type)
+    games = api_instance.get_games(year=year, season_type = season_type,
+                                   division="fbs")
 
     for game in games:
-        if game.home_conference == None or game.away_conference == None:
+        if game.home_division != "fbs" or game.away_division != "fbs":
             skip_game = True
         else:
             skip_game = False
