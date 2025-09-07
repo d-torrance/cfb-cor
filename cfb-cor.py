@@ -3,15 +3,12 @@
 import argparse
 import cfbd
 import datetime
-import dateutil.parser
 import itertools
 import networkx as nx
 import xdg
 
 api_key = open(f"{str(xdg.xdg_config_home())}/cfb-cor/api-key").read()
-configuration = cfbd.Configuration()
-configuration.api_key['Authorization'] = api_key
-configuration.api_key_prefix['Authorization'] = 'Bearer'
+configuration = cfbd.Configuration(access_token = api_key)
 api_instance = cfbd.GamesApi(cfbd.ApiClient(configuration))
 
 parser = argparse.ArgumentParser()
@@ -49,14 +46,15 @@ actual_losses = {}
 
 def find_games(season_type):
     games = api_instance.get_games(year=year, season_type = season_type,
-                                   division="fbs")
+                                   classification="fbs")
 
     for game in games:
-        if game.home_division != "fbs" or game.away_division != "fbs":
+        if (game.home_classification != "fbs" or
+            game.away_classification != "fbs"):
             skip_game = True
         else:
             skip_game = False
-        if dateutil.parser.parse(game.start_date).replace(tzinfo=None) > today:
+        if game.start_date.replace(tzinfo=None) > today:
             continue
         team1 = game.home_team
         team2 = game.away_team
