@@ -5,7 +5,10 @@ import cfbd
 import datetime
 import itertools
 import networkx as nx
+import sys
 import xdg
+
+import big_ten
 
 api_key = open(f"{str(xdg.xdg_config_home())}/cfb-cor/api-key").read()
 configuration = cfbd.Configuration(access_token = api_key)
@@ -18,6 +21,10 @@ parser.add_argument("--num-teams", "-n", help = "number of teams (default: 25)")
 parser.add_argument("--reverse", "-r", help = "reverse order",
                     action = "store_true")
 parser.add_argument("--breakdown", "-b", help="breakdown for single team")
+parser.add_argument("--big-ten", help="Big Ten championship game scenarios",
+                    action="store_true")
+parser.add_argument("--week", "-w", type=int,
+                    help="only count games through this week (with --big-ten)")
 args = parser.parse_args()
 
 if args.single_team:
@@ -33,6 +40,10 @@ else:
         year = today.year - 1
     else:
         year = today.year
+
+if args.big_ten:
+    big_ten.print_scenarios(api_instance, year, args.week)
+    sys.exit()
 
 if args.num_teams:
     num_teams = int(args.num_teams) + 1
